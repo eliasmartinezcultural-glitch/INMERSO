@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102b2a">
+  <meta name="description" content="INMERSO: exploración cartográfica de San Patricio del Chañar y su entorno. Proyecto en construcción.">
+  <title>INMERSO — San Patricio del Chañar</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://tile.openstreetmap.org">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <style>
+    :root{color-scheme:dark;--bg:#0b1718;--panel:#122526;--panel2:#1b3332;--ink:#f4f1e7;--muted:#b9c9c2;--mint:#b5e4c7;--gold:#e8c98b;--line:#36504b;--danger:#f2c5a7}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+    body{min-height:100vh}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+    .shell{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}.top{padding:22px clamp(16px,4vw,54px) 16px;border-bottom:1px solid var(--line);background:linear-gradient(115deg,#122827,#0b1718 72%)}
+    .brandline{display:flex;align-items:center;gap:12px}.mark{width:42px;height:42px;border:1px solid #648a79;border-radius:14px;display:grid;place-items:center;color:var(--mint);font-size:22px;background:#183330}
+    .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--mint);font-weight:800}.brand{font-size:clamp(26px,4vw,42px);letter-spacing:.1em;font-weight:850;line-height:1.05}.subtitle{color:var(--muted);font-size:14px;margin-top:7px}
+    .status{display:inline-flex;align-items:center;gap:7px;border:1px solid #526b5d;border-radius:999px;padding:7px 11px;color:var(--gold);font-size:12px;font-weight:700;margin-top:15px}.dot{width:7px;height:7px;border-radius:50%;background:var(--gold)}
+    main{display:grid;grid-template-columns:minmax(270px,340px) minmax(0,1fr);gap:18px;padding:18px clamp(12px,2vw,28px);min-height:650px}
+    aside{display:flex;flex-direction:column;gap:12px;min-width:0}.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px}.panel h2{font-size:14px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 12px;color:var(--mint)}
+    .intro{font-size:14px;line-height:1.55;color:var(--muted);margin:0}.search{display:flex;gap:8px}.search input{min-width:0;width:100%;background:#091516;color:var(--ink);border:1px solid #45605a;border-radius:10px;padding:11px 12px}.primary{border:0;border-radius:10px;padding:10px 13px;background:var(--mint);color:#102b25;font-weight:800}.primary:disabled{opacity:.5;cursor:wait}
+    .quick{display:grid;grid-template-columns:1fr 1fr;gap:8px}.chip{border:1px solid #3c5a51;background:#182f2c;color:var(--ink);border-radius:10px;padding:10px;text-align:left;font-size:12px;line-height:1.35}.chip:hover{border-color:var(--mint);background:#203b36}
+    .note{font-size:12px;line-height:1.5;color:var(--muted)}.note strong{color:var(--gold)}.divider{height:1px;background:var(--line);margin:12px 0}
+    .layer{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #2b4140}.layer:last-child{border-bottom:0;padding-bottom:0}.layer .symbol{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#213b36;color:var(--mint);flex:none}.layer b{font-size:13px;display:block}.layer small{font-size:11px;color:var(--muted);display:block;line-height:1.4;margin-top:3px}
+    .mapwrap{position:relative;min-width:0;min-height:580px;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#dbe4dc}.maphead{position:absolute;z-index:500;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;pointer-events:none}.maplabel,.mapbadge{background:#102322ed;color:#f6f1e6;border:1px solid #547269;border-radius:11px;padding:9px 12px;font-size:12px;box-shadow:0 5px 18px #0002}.maplabel strong{display:block;letter-spacing:.06em}.maplabel span{display:block;color:#c4d4cd;margin-top:3px}.mapbadge{color:var(--gold);font-weight:700}
+    #map{position:absolute;inset:0;min-height:580px}.mapfoot{position:absolute;z-index:500;bottom:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}.mapfoot span{background:#102322e8;border:1px solid #547269;color:#f4f1e7;border-radius:9px;padding:8px 10px;font-size:11px}
+    .message{font-size:12px;color:var(--muted);line-height:1.45;margin-top:9px;min-height:18px}.results{display:grid;gap:7px;margin-top:10px}.result{background:#1a3330;border:1px solid #36504b;color:var(--ink);padding:9px;border-radius:9px;text-align:left;font-size:12px;line-height:1.4}.result:hover{border-color:var(--mint)}
+    footer{padding:15px clamp(16px,4vw,54px);border-top:1px solid var(--line);color:var(--muted);font-size:11px;line-height:1.6;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    a{color:var(--mint)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#102322;color:#f4f1e7}.leaflet-control-attribution{font-size:10px!important}
+    @media(max-width:850px){main{grid-template-columns:1fr;min-height:auto}.mapwrap{min-height:62vh;order:1}#map{min-height:62vh}aside{order:2}.top{padding-top:18px}.maphead{flex-wrap:wrap}.mapfoot{flex-wrap:wrap}.panel{padding:14px}}
+    @media(max-width:420px){.mapwrap,#map{min-height:55vh}.brand{font-size:28px}.quick{grid-template-columns:1fr 1fr}.mapbadge{font-size:10px}.mapfoot span{font-size:10px}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <div class="brandline"><div class="mark" aria-hidden="true">⌖</div><div><div class="eyebrow">Territorio · memoria · exploración</div><div class="brand">INMERSO</div><div class="subtitle">San Patricio del Chañar y su entorno rural</div></div></div>
+    <div class="status"><span class="dot"></span> FASE 2 · BASE INTERACTIVA EN CONSTRUCCIÓN</div>
+  </header>
+  <main>
+    <section class="mapwrap" aria-label="Mapa interactivo">
+      <div class="maphead"><div class="maplabel"><strong>EXPLORADOR TERRITORIAL</strong><span>Cartografía de referencia · no es un relevamiento completo</span></div><div class="mapbadge">Versión inicial · 0.1</div></div>
+      <div id="map" role="application" aria-label="Mapa interactivo de San Patricio del Chañar"></div>
+      <div class="mapfoot"><span>Mové el mapa · acercá o alej á · seleccioná lugares</span><span>Base cartográfica: OpenStreetMap</span></div>
+    </section>
+    <aside>
+      <section class="panel">
+        <h2>Una puerta al territorio</h2>
+        <p class="intro">INMERSO busca conectar calles, caminos rurales, río, chacras y lugares que cuentan la identidad del Chañar. Esta primera versión ya permite explorar el mapa; las capas locales se incorporarán cuando sus datos y permisos estén verificados.</p>
+      </section>
+      <section class="panel">
+        <h2>Buscar un lugar</h2>
+        <form id="searchForm" class="search">
+          <input id="searchInput" type="search" placeholder="Ej.: plaza, escuela, calle…" aria-label="Lugar que querés buscar" maxlength="120">
+          <button class="primary" id="searchButton" type="submit">Buscar</button>
+        </form>
+        <div id="searchMessage" class="message" aria-live="polite">La búsqueda consulta OpenStreetMap cuando la solicitás.</div>
+        <div id="searchResults" class="results"></div>
+      </section>
+      <section class="panel">
+        <h2>Atajos de exploración</h2>
+        <div class="quick">
+          <button class="chip" data-view="town">⌂<br>Área urbana</button>
+          <button class="chip" data-view="wide">◎<br>Entorno amplio</button>
+          <button class="chip" data-view="river">≈<br>Buscar el río</button>
+          <button class="chip" data-view="reset">↺<br>Volver al inicio</button>
+        </div>
+        <p class="note" style="margin-bottom:0">Los atajos orientan el mapa; no representan límites oficiales ni certifican que cada elemento esté relevado.</p>
+      </section>
+      <section class="panel">
+        <h2>Capas en preparación</h2>
+        <div class="layer"><div class="symbol">⌁</div><div><b>Calles y caminos</b><small>Base cartográfica visible. Falta auditar cobertura y continuidad.</small></div></div>
+        <div class="layer"><div class="symbol">⌂</div><div><b>Edificios y lugares</b><small>Se incorporarán desde fuentes identificadas y verificables.</small></div></div>
+        <div class="layer"><div class="symbol">≈</div><div><b>Río y paisaje</b><small>Capas locales por identificar y revisar.</small></div></div>
+        <div class="layer"><div class="symbol">▧</div><div><b>Chacras y producción</b><small>Sin polígonos incorporados todavía; no se dibujan parcelas inventadas.</small></div></div>
+        <div class="layer"><div class="symbol">◇</div><div><b>Vista inmersiva 3D</b><small>Próxima investigación técnica; aún no implementada.</small></div></div>
+      </section>
+      <section class="panel">
+        <h2>Registro de honestidad</h2>
+        <p class="note" style="margin:0">Esta versión usa un mapa base externo. No contiene todavía una base local completa de parcelas, edificios, viñedos o caminos rurales. La disponibilidad de internet y del proveedor cartográfico afecta su funcionamiento.</p>
+        <div class="divider"></div>
+        <p class="note" style="margin:0"><strong>Fuente de datos:</strong> © colaboradores de OpenStreetMap. Los resultados de búsqueda pueden ser incompletos o estar desactualizados.</p>
+      </section>
+    </aside>
+  </main>
+  <footer><span>INMERSO · Proyecto territorial en desarrollo · San Patricio del Chañar, Neuquén</span><span>Mapa © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> · <a href="https://github.com/eliasmartinezcultural-glitch/INMERSO" target="_blank" rel="noopener noreferrer">Repositorio del proyecto</a></span></footer>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(() => {
+  const initialCenter = [-38.625, -68.300];
+  const map = L.map('map', {zoomControl: true, scrollWheelZoom: true}).setView(initialCenter, 13);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+  }).addTo(map);
+  L.control.scale({imperial: false, metric: true, position: 'bottomright'}).addTo(map);
+  let searchMarkers = [];
+  const msg = document.getElementById('searchMessage');
+  const results = document.getElementById('searchResults');
+  const input = document.getElementById('searchInput');
+  const button = document.getElementById('searchButton');
+  const clean = (value) => String(value ?? '').replace(/[<>]/g, '').trim();
+
+  document.getElementById('searchForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const query = clean(input.value);
+    if (!query) { msg.textContent = 'Escribí el nombre de un lugar para buscar.'; input.focus(); return; }
+    button.disabled = true;
+    results.replaceChildren();
+    msg.textContent = 'Consultando resultados…';
+    try {
+      const url = new URL('https://nominatim.openstreetmap.org/search');
+      url.search = new URLSearchParams({q: query + ', San Patricio del Chañar, Neuquén, Argentina', format: 'jsonv2', limit: '5', addressdetails: '1'}).toString();
+      const response = await fetch(url.toString(), {headers: {'Accept': 'application/json'}});
+      if (!response.ok) throw new Error('El servicio respondió con un error.');
+      const data = await response.json();
+      if (!data.length) { msg.textContent = 'No encontramos resultados para esa búsqueda. Probá con otro nombre.'; return; }
+      msg.textContent = 'Resultados de OpenStreetMap. Confirmá cada ubicación antes de usarla como dato oficial.';
+      data.forEach((item) => {
+        const title = clean(item.name || item.display_name.split(',')[0] || 'Lugar encontrado');
+        const description = clean(item.display_name);
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'result';
+        row.textContent = title + ' — ' + description;
+        row.addEventListener('click', () => {
+          const lat = Number(item.lat), lon = Number(item.lon);
+          if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+          map.setView([lat, lon], Math.max(map.getZoom(), 16));
+          searchMarkers.forEach((marker) => map.removeLayer(marker));
+          searchMarkers = [L.marker([lat, lon]).addTo(map).bindPopup('<strong>' + title.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '</strong><br>Resultado de búsqueda; pendiente de verificación.').openPopup()];
+        });
+        results.appendChild(row);
+      });
+    } catch (error) {
+      msg.textContent = 'No pudimos completar la búsqueda. Revisá tu conexión e intentá más tarde.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  document.querySelectorAll('[data-view]').forEach((el) => el.addEventListener('click', () => {
+    const view = el.dataset.view;
+    if (view === 'town') map.setView(initialCenter, 14);
+    if (view === 'wide') map.setView(initialCenter, 11);
+    if (view === 'river') {
+      input.value = 'Río Neuquén';
+      document.getElementById('searchForm').requestSubmit();
+    }
+    if (view === 'reset') { map.setView(initialCenter, 13); input.value = ''; results.replaceChildren(); msg.textContent = 'La búsqueda consulta OpenStreetMap cuando la solicitás.'; searchMarkers.forEach((marker) => map.removeLayer(marker)); searchMarkers = []; }
+  }));
+})();
+</script>
+</body>
+</html>
